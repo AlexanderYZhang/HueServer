@@ -45,6 +45,7 @@ var api = new HueApi(host, user);
 var state = lightState.create();
 
 const action = (req, res) => {
+	console.log("NEW REQUEST");
 	var params = {
 		TableName: 'ButtonsTable',
 		Key: {
@@ -63,14 +64,14 @@ const action = (req, res) => {
 			});
 		},
 		function(data, cb) {
-			console.log("this isthe data", data);
+			console.log("this is the data", data);
 			var event = req.body["clickType"].toLowerCase()
 			var targets = data["event"]["M"][event];
 			async.each(targets["SS"], function(id, cb2) {
 				var params = {
 				  TableName: 'DevicesTable',
 				  Key: {
-				    "id" : {S: id},
+				    "number" : {S: id},
 				  },
 				  ExpressionAttributeNames: {
 				  	"#s": "state",
@@ -87,7 +88,7 @@ const action = (req, res) => {
 						var number = parseInt(data["Item"]["number"]["S"]);
 						api.lightStatus(number, function(err, result) {
 							if (err) {
-								throw err;
+								return err;
 							}
 							var on = result["state"]["on"];
 							cb3(null, data, on);
@@ -114,9 +115,7 @@ const action = (req, res) => {
 						var number = parseInt(data["Item"]["number"]["S"]);
 						data = data["Item"]["state"]["M"];
 						var state = {};
-						console.log("this is the state of the light", data["on"]["BOOL"]);
 						if (!on) {
-							console.log("this is the hue", data["hue"]["N"]);
 							state = {
 								bri: data["bri"]["N"],
 								hue: data["hue"]["N"],
@@ -126,84 +125,54 @@ const action = (req, res) => {
 								colormode: data["colormode"]["S"],
 							}
 						} else {
-							cb3(null, !on);
+							cb3(null);
+							return;
 						}
 						console.log(state);
 						console.log("this is the target number", number);
 						api.setLightState(number, state)
-							    .then(displayResult)
+							    .then()
 							    .fail(displayError)
 							    .done();
-						cb3(null, !on);
-					},
-					function(state, cb3) {
-						var newState = !state;
-						var update = {
-							TableName: "DevicesTable",
-							Key: {
-								"id" : {S: id},
-							},
-						  	ExpressionAttributeNames: {
-						  		"#s": "state",
-						  	},
-							ExpressionAttributeValues: { 
-        						":on": {"BOOL": newState}
-    						},	
-							UpdateExpression: "set #s.on=:on"
-						}
 						cb3(null);
-					}
+					},
 				], function(err, result) {
 					if (err) {
 						console.log(err);
-						throw err;
+						return err;
 					}
 					cb2(null);
 				});
 			}, function(err) {
 				if (err) {
 					console.log(err);
-					throw err;
+					return err;
 				}
-				return;
+				cb();
 			})
-			cb();
 		},
 	], function(err, result) {
 		if (err) {
 			console.log(err);
 		}
+		res.send('POST request received')
 		console.log("Done with one iteration");
 	});
 };
 
 app.get('/', (request, response) => {
 	console.log("Received a get request");
-	response.send('POST request to the homepage')
 })
 ;
 app.post('/', (request, response) => {
 	console.log("Received a post request");
-	response.send('POST request to the homepage')
 });
 
-app.post('/single', (request, response) => {
-	api.lights(function(err, config) {
-		displayResult(config);
-	});
-});
+app.post('/single', action);
 
 app.post('/double', action);
 
-app.post('/long', (request, response) => {
-
-	api.setLightState(2, state.off())
-		    .then(displayResult)
-		    .fail(displayError)
-		    .done();
-	console.log("Received a post request long");
-	response.send('POST request to the LONG')
-});
+app.post('/long', action);
 
 console.log("Listening on port " + port);
 app.listen(port);

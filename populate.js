@@ -23,14 +23,13 @@ var displayError = function(err) {
 var api = new HueApi(host, user);
 
 var Device = new dynamo.define("Device", {
-	hashKey: "id",
+	hashKey: "number",
 	timestamps: true,
 	schema: {
 		name: Joi.string(),
 		id: Joi.string(),
 		number: Joi.string(),
 		state: {
-			on: Joi.boolean().default(false),
 			bri: Joi.number(),
 			hue: Joi.number(),
 			sat: Joi.number(),
@@ -68,9 +67,9 @@ dynamo.createTables(function(err) {
 Button.create({
 	id: "G030MD049054QVJN",
 	event: {
-		single: ["a"],
-		double: ["a"],
-		long: ["a"],
+		single: ["1"],
+		double: ["2"],
+		long: ["3"],
 	},
 }, function(err, acc) {
 	console.log("insert");
@@ -93,7 +92,6 @@ api.lights(function(err, config) {
 			id: value["uniqueid"],
 			number: value["id"],
 			state: {
-				on: state["on"],
 				bri: state["bri"],
 				hue: state["hue"],
 				sat: state["sat"],
@@ -110,4 +108,3 @@ api.lights(function(err, config) {
 		});
 	});
 });
-
