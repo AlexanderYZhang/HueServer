@@ -110,7 +110,7 @@ function set(sessionAttributes, fulfillmentState, data, callback) {
 		if (err) {
 			console.log(err);
 		}
-		var content = "Updated " + data.property + " to: " + property;
+		var content = "Updated " + data.property + " to: " + data.value;
 		var message = {
 			contentType: "PlainText",
 			content: content,
