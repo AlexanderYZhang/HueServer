@@ -10,7 +10,7 @@ Having to either go through Alexa, Google home, or your phone sometimes can be a
 
 ### Architecture
 ![Image](../master/Project_Architecture.png?raw=true)
-### How to use
+### Setup
 Set environment variables:
 Host: Set to your Hue bridge host ip
 User: Set to your the user registered on the bridge
@@ -21,3 +21,6 @@ Install the dependencies
 Run the server
 `node server.js`
 Configure Lex and IOT on the console
+
+Zip LexScript folder and upload as lambda function to AWS
+Link the lambda function to Alexa, setup sample utterances and slot types.
